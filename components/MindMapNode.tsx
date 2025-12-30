@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { MindMapData } from '../types';
 import { Target, Wallet, TrendingUp, PieChart, Activity, Calculator, CheckCircle2, AlertCircle, ChevronRight, FileText, Image as ImageIcon, Link as LinkIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -25,7 +25,8 @@ const getIcon = (iconName?: string) => {
   }
 };
 
-export const MindMapNode: React.FC<MindMapNodeProps> = ({ 
+// Use memo to prevent re-renders when parent drags (props don't change)
+export const MindMapNode: React.FC<MindMapNodeProps> = memo(({ 
   data, 
   onToggleExpand, 
   onSelect,
@@ -44,22 +45,20 @@ export const MindMapNode: React.FC<MindMapNodeProps> = ({
 
   return (
     <motion.div
-      layout
-      initial={{ opacity: 0, scale: 0.5 }}
+      initial={{ opacity: 0, scale: 0.8 }}
       animate={{ 
         opacity: 1, 
         scale: 1,
         left: data.x,
         top: data.y
       }}
+      // Match the ease of the connecting lines exactly. No spring.
       transition={{ 
-        type: "spring", 
-        stiffness: 300, 
-        damping: 30,
-        mass: 1 
+        duration: 0.5, 
+        ease: [0.16, 1, 0.3, 1] 
       }}
       style={{ position: 'absolute' }}
-      className="absolute z-10"
+      className="absolute z-10 node-card"
     >
       <div 
         className={`
@@ -84,19 +83,25 @@ export const MindMapNode: React.FC<MindMapNodeProps> = ({
            </div>
            
            {hasChildren && (
-              <button 
+              <motion.button 
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
                   onClick={(e) => {
                       e.stopPropagation();
                       onToggleExpand(data.id);
                   }}
                   className={`
-                    p-1 rounded-full transition-all duration-300 flex-shrink-0
+                    p-1 rounded-full flex-shrink-0 transition-colors
                     ${isRoot ? 'hover:bg-white/20 text-white' : 'hover:bg-slate-100 text-slate-400 hover:text-blue-600'}
-                    ${data.isExpanded ? 'rotate-90' : ''}
                   `}
               >
-                  <ChevronRight size={16}/>
-              </button>
+                  <motion.div
+                     animate={{ rotate: data.isExpanded ? 90 : 0 }}
+                     transition={{ duration: 0.3 }}
+                  >
+                     <ChevronRight size={16}/>
+                  </motion.div>
+              </motion.button>
            )}
         </div>
         
@@ -129,14 +134,30 @@ export const MindMapNode: React.FC<MindMapNodeProps> = ({
           </div>
         )}
 
-        {/* Connection Points (Visual only) */}
+        {/* Connection Points */}
+        {/* Input Point (Left) - Not for Root */}
         {!isRoot && (
-           <div className="absolute top-1/2 -left-[5px] w-2 h-2 bg-blue-500 rounded-full border border-white transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity" />
+           <motion.div 
+             initial={{ scale: 0 }} 
+             animate={{ scale: 1 }}
+             className="absolute top-1/2 -left-[6px] w-3 h-3 bg-white rounded-full border-2 border-slate-300 z-20 flex items-center justify-center"
+           >
+              <div className="w-1.5 h-1.5 bg-slate-400 rounded-full" />
+           </motion.div>
         )}
-        {hasChildren && data.isExpanded && (
-           <div className="absolute top-1/2 -right-[5px] w-2 h-2 bg-blue-500 rounded-full border border-white transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity" />
+        
+        {/* Output Point (Right) - Only if has children */}
+        {hasChildren && (
+           <motion.div 
+             initial={{ scale: 0 }} 
+             animate={{ scale: 1 }}
+             className={`absolute top-1/2 -right-[6px] w-3 h-3 bg-white rounded-full border-2 z-20 flex items-center justify-center
+                ${data.isExpanded ? 'border-blue-500' : 'border-slate-300'}`}
+           >
+              <div className={`w-1.5 h-1.5 rounded-full transition-colors ${data.isExpanded ? 'bg-blue-500' : 'bg-slate-400'}`} />
+           </motion.div>
         )}
       </div>
     </motion.div>
   );
-};
+});
