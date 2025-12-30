@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { 
   TrendingUp, TrendingDown, Target, Calculator, 
-  PiggyBank, Plus, Minus, BarChart3, Wallet, 
-  AlertTriangle, ArrowRight, RefreshCcw, Coins
+  Plus, Minus, BarChart3, 
+  AlertTriangle
 } from 'lucide-react';
 
 // --- Helper Functions ---
